@@ -1,0 +1,3 @@
+﻿app argument1 argument2 ... --option1 -option2 ...
+
+argument : requred value / provided value
