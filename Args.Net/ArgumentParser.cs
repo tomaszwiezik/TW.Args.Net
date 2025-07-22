@@ -57,7 +57,8 @@ namespace Args.Net
             var executableName = Path.GetFileNameWithoutExtension(_assembly.Location);
             helpText.Add($"{executableName}, (C) Tomasz Wiezik");
             helpText.Add(string.Empty);
-            helpText.Add("Syntax:");
+            helpText.Add("SYNTAX:");
+            helpText.Add(string.Empty);
 
             var syntaxVariants = InstantiateSyntaxVariants(_assembly);
             foreach (var syntaxVariant in syntaxVariants)
@@ -157,7 +158,7 @@ namespace Args.Net
                     }
                     if (!optionFound)
                     {
-                        ((Arguments)syntaxVariant!).UnknownOptions.Add(option);
+                        ((Arguments)syntaxVariant!).Invalidate();
                     }
                 }
             }
@@ -175,16 +176,16 @@ namespace Args.Net
                 if (variantAccepted)
                 {
                     var typedSyntaxVariant = (Arguments)syntaxVariant!;
-                    if (typedSyntaxVariant.UnknownOptions.Count > 0) variantAccepted = false;
+                    if (!typedSyntaxVariant.Valid) variantAccepted = false;
                 }
 
                 if (variantAccepted)
                 {
                     foreach (var property in GetPropertiesWithAttribute<ArgumentAttribute>(syntaxVariant!))
                     {
-                        var propertyAttribute = property.GetCustomAttribute<ArgumentAttribute>();
+                        var attribute = property.GetCustomAttribute<ArgumentAttribute>();
 
-                        if (propertyAttribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
+                        if (attribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
                     }
                 }
 
@@ -192,9 +193,9 @@ namespace Args.Net
                 {
                     foreach (var property in GetPropertiesWithAttribute<OptionAttribute>(syntaxVariant!))
                     {
-                        var propertyAttribute = property.GetCustomAttribute<OptionAttribute>();
+                        var attribute = property.GetCustomAttribute<OptionAttribute>();
 
-                        if (propertyAttribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
+                        if (attribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
                     }
                 }
 

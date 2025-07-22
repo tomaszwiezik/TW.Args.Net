@@ -10,7 +10,8 @@ namespace Args.Net.Sample
             try
             {
                 args = "load data 555 --option1 -o2=6".Split(' ');
-                args = "--help".Split(' ');
+                //args = "--help".Split(' ');
+                //args = "".Split(' ');
                 var arguments = parser.Parse(args);
 
                 Console.WriteLine(arguments.SyntaxVariantName);
