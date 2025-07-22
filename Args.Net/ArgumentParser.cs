@@ -1,121 +1,210 @@
 ﻿using System.Reflection;
+using System.Text;
 
 namespace Args.Net
 {
+    /// <summary>
+    /// <para>
+    /// Command-line argument parser.
+    /// </para>
+    /// <para>
+    /// Terminology:
+    /// <list type="table">
+    /// <item>Argument - a positional argument.</item>
+    /// <item>Option (switch) - options, prepeded with -- or -.</item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public class ArgumentParser
     {
-        public ParsedArguments Parse(string[] args, Assembly? assembly = null)
+        public ArgumentParser(Assembly? assembly = null)
         {
-            if (assembly == null)
+            _assembly = assembly == null ? Assembly.GetEntryAssembly()! : assembly;
+        }
+
+        private readonly Assembly _assembly;
+
+
+        public ParsedArguments Parse(string[] args)
+        {
+            if (args.Length == 0 || args[0] == "--help" || args[0] == "-h") throw new ArgumentException();
+
+            var syntaxVariants = InstantiateSyntaxVariants(_assembly);
+
+            ParseArguments(ExtractArguments(args), ref syntaxVariants);
+            ParseOptions(ExtractOptions(args), ref syntaxVariants);
+
+            var selectedSyntaxVariants = SelectValidSyntaxVariants(syntaxVariants);
+
+            if (selectedSyntaxVariants.Count == 1)
             {
-                assembly = Assembly.GetEntryAssembly();
+                return new ParsedArguments(selectedSyntaxVariants[0]);
+            }
+            else
+            {
+                return selectedSyntaxVariants.Count switch
+                {
+                    0 => throw new ArgumentException("Provided arguments are incorrect, use --help option to display help"),
+                    _ => throw new ArgumentException("Ambigious syntax definition, more than one syntax variants match provided arguments")
+                };
+            }
+        }
+
+
+        public string GetHelp()
+        {
+            var helpText = new List<string>();
+            var executableName = Path.GetFileNameWithoutExtension(_assembly.Location);
+            helpText.Add($"{executableName}, (C) Tomasz Wiezik");
+            helpText.Add(string.Empty);
+            helpText.Add("Syntax:");
+
+            var syntaxVariants = InstantiateSyntaxVariants(_assembly);
+            foreach (var syntaxVariant in syntaxVariants)
+            {
+                helpText.Add($"{executableName} {((Arguments)syntaxVariant!).GetHelp().Trim()}");
+                helpText.Add(string.Empty);
             }
 
-            var arguments = args.ToList().FindAll(x => !x.StartsWith('-'));
-            var options = args.ToList().FindAll(x => x.StartsWith('-'));
+            return string.Join(Environment.NewLine, helpText);
+        }
 
-            var argumentVariants = assembly!.GetTypes()
+
+        private List<string> ExtractArguments(string[] args) => args.ToList().FindAll(x => !x.StartsWith('-'));
+
+
+        private List<string> ExtractOptions(string[] args) => args.ToList().FindAll(x => x.StartsWith('-'));
+
+
+        private List<object?> InstantiateSyntaxVariants(Assembly assembly) => assembly!.GetTypes()
                 .Where(x => x.IsClass && x.GetCustomAttribute<ArgumentsAttribute>() != null)
                 .Select(x => Activator.CreateInstance(x))
                 .ToList();
 
+
+        private IEnumerable<PropertyInfo> GetPropertiesWithAttribute<TAttr>(object instance) => instance
+            .GetType()
+            .GetProperties()
+            .Where(x => Attribute.IsDefined(x, typeof(TAttr)));
+
+
+        private Type GetPropertyType(PropertyInfo property) => Nullable.GetUnderlyingType(property.PropertyType) == null ?
+                                property.PropertyType :
+                                Nullable.GetUnderlyingType(property.PropertyType)!;
+
+
+
+        private void ParseArguments(List<string> arguments, ref List<object?> syntaxVariants)
+        {
             for (int position = 0; position < arguments.Count; position++)
             {
                 var argument = arguments[position];
 
-                for (int i = 0; i < argumentVariants.Count; i++)
+                for (int i = 0; i < syntaxVariants.Count; i++)
                 {
-                    var argumentVariant = argumentVariants[i];
-                    var argumentProperties = argumentVariant!.GetType().GetProperties()
-                        .Where(x => Attribute.IsDefined(x, typeof(ArgumentAttribute)));
+                    var syntaxVariant = syntaxVariants[i];
+                    var properties = GetPropertiesWithAttribute<ArgumentAttribute>(syntaxVariant!);
 
-                    if (argumentProperties.Count() > arguments.Count) continue;   // There are more arguments than the variant can accept
+                    if (properties.Count() > arguments.Count) continue;   // There are more arguments than the variant can accept
 
-                    foreach (var property in argumentProperties)
+                    foreach (var property in properties)
                     {
-                        var propertyAttribute = property.GetCustomAttribute<ArgumentAttribute>();
-                        if (propertyAttribute!.Position == position)
+                        var attribute = property.GetCustomAttribute<ArgumentAttribute>();
+                        if (attribute!.Position == position)
                         {
-                            if (propertyAttribute.RequiredValue == argument || propertyAttribute.RequiredValue == null)
+                            if (attribute.RequiredValue == argument || attribute.RequiredValue == null)
                             {
-                                property.SetValue(argumentVariant, argument);
+                                property.SetValue(syntaxVariant, argument);
                             }
                         }
                     }
                 }
             }
+        }
 
+
+        private void ParseOptions(List<string> options, ref List<object?> syntaxVariants)
+        {
             foreach (var option in options)
             {
-                var optionNameValue = option.Split('=', 2);
-                var optionName = optionNameValue[0];
-                var optionValue = optionNameValue.Length == 2 ? optionNameValue[1] : null;
+                var parsedOption = new Option(option);
 
-                for (int i = 0; i < argumentVariants.Count; i++)
+                for (int i = 0; i < syntaxVariants.Count; i++)
                 {
-                    var argumentVariant = argumentVariants[i];
-                    var optionProperties = argumentVariant!.GetType().GetProperties()
-                        .Where(x => Attribute.IsDefined(x, typeof(OptionAttribute)));
+                    var syntaxVariant = syntaxVariants[i];
 
-                    foreach (var property in optionProperties)
+                    var optionFound = false;
+                    foreach (var property in GetPropertiesWithAttribute<OptionAttribute>(syntaxVariant!))
                     {
-                        var propertyAttribute = property.GetCustomAttribute<OptionAttribute>();
-                        if (propertyAttribute!.Name == optionName || propertyAttribute!.ShortcutName == optionName)
+                        var attribute = property.GetCustomAttribute<OptionAttribute>();
+                        if (attribute!.Name == parsedOption.Name || attribute!.ShortcutName == parsedOption.Name)
                         {
-                            if (property.PropertyType.FullName != "System.Boolean" && optionValue == null)
+                            if (GetPropertyType(property).FullName != "System.Boolean" && !parsedOption.HasValue)
                             {
-                                throw new InvalidOperationException($"Option {option} is invalid");
+                                throw new ArgumentException($"Option {option} is invalid, no value has been provided");
                             }
 
-                            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) == null ?
-                                property.PropertyType.FullName :
-                                Nullable.GetUnderlyingType(property.PropertyType)!.FullName;
-
-                            switch (propertyType)
+                            switch (GetPropertyType(property).FullName)
                             {
-                                case "System.Boolean": property.SetValue(argumentVariant, true); break;
-                                case "System.Int32": property.SetValue(argumentVariant, Convert.ToInt32(optionValue)); break;
-                                case "System.String": property.SetValue(argumentVariant, optionValue); break;
-                                default: throw new InvalidOperationException($"Option {option} is invalid");
+                                case "System.Boolean": property.SetValue(syntaxVariant, true); break;
+                                case "System.Int32": property.SetValue(syntaxVariant, Convert.ToInt32(parsedOption.Value)); break;
+                                case "System.String": property.SetValue(syntaxVariant, parsedOption.Value); break;
+                                default: throw new ArgumentException($"Option {option} of type {GetPropertyType(property).FullName} is not supported");
                             }
+
+                            optionFound = true;
                         }
+                    }
+                    if (!optionFound)
+                    {
+                        ((Arguments)syntaxVariant!).UnknownOptions.Add(option);
                     }
                 }
             }
+        }
 
-            foreach (var argumentVariant in argumentVariants)
+
+        private List<object> SelectValidSyntaxVariants(List<object?> syntaxVariants)
+        {
+            var selectedSyntaxVariants = new List<object>();
+
+            foreach (var syntaxVariant in syntaxVariants)
             {
                 var variantAccepted = true;
 
-                var argumentProperties = argumentVariant!.GetType().GetProperties()
-                    .Where(x => Attribute.IsDefined(x, typeof(ArgumentAttribute)));
-
-                foreach (var property in argumentProperties)
+                if (variantAccepted)
                 {
-                    var propertyAttribute = property.GetCustomAttribute<ArgumentAttribute>();
-                    var propertyValue = property.GetValue(argumentVariant);
-
-                    if (propertyAttribute!.Required && propertyValue == null) variantAccepted = false;
-                }
-
-                var optionProperties = argumentVariant!.GetType().GetProperties()
-                    .Where(x => Attribute.IsDefined(x, typeof(OptionAttribute)));
-
-                foreach (var property in optionProperties)
-                {
-                    var propertyAttribute = property.GetCustomAttribute<OptionAttribute>();
-                    var propertyValue = property.GetValue(argumentVariant);
-
-                    if (propertyAttribute!.Required && propertyValue == null) variantAccepted = false;
+                    var typedSyntaxVariant = (Arguments)syntaxVariant!;
+                    if (typedSyntaxVariant.UnknownOptions.Count > 0) variantAccepted = false;
                 }
 
                 if (variantAccepted)
                 {
-                    return new ParsedArguments(argumentVariant);
+                    foreach (var property in GetPropertiesWithAttribute<ArgumentAttribute>(syntaxVariant!))
+                    {
+                        var propertyAttribute = property.GetCustomAttribute<ArgumentAttribute>();
+
+                        if (propertyAttribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
+                    }
+                }
+
+                if (variantAccepted)
+                {
+                    foreach (var property in GetPropertiesWithAttribute<OptionAttribute>(syntaxVariant!))
+                    {
+                        var propertyAttribute = property.GetCustomAttribute<OptionAttribute>();
+
+                        if (propertyAttribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
+                    }
+                }
+
+                if (variantAccepted)
+                {
+                    selectedSyntaxVariants.Add(syntaxVariant!);
                 }
             }
 
-            throw new ArgumentException();
+            return selectedSyntaxVariants;
         }
 
     }
