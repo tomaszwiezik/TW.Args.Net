@@ -128,8 +128,10 @@ namespace Args.Net
                 var doc = GetPropertyAttribute<DocAttribute>(property);
                 if (doc == null) throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
 
+                var propertyType = GetPropertyType(property);
+
                 optionsDoc.Add(new OptionDoc(
-                    name: option.Name,
+                    name: propertyType.FullName == "System.Boolean" ? option.Name : $"{option.Name}=<{propertyType.Name.ToLower()}>",
                     shortcutName: string.IsNullOrWhiteSpace(option.ShortcutName) ? string.Empty : option.ShortcutName,
                     required: option.Required,
                     text: doc.Text));

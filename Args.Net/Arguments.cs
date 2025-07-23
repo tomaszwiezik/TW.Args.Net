@@ -11,7 +11,5 @@
 
 
         public void Invalidate() => Valid = false;
-
-        public virtual string GetHelp() => throw new NotImplementedException();
     }
 }

@@ -23,14 +23,5 @@
         [Option(Name = "--option2", ShortcutName = "-o2", Required = true)]
         [Doc("Option 2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")]
         public int? Option2 { get; set; }
-
-
-        public override string GetHelp() => @"
-load data <file> --option1 [--option2=5]
-  Does some fancy stuff :)
-
-  --option1 - some options description
-  --option2 - some other description
-";
     }
 }

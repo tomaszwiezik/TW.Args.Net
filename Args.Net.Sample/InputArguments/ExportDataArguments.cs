@@ -11,8 +11,5 @@
         [Argument(Required = true, RequiredValue = "data", Position = 1)]
         [Doc("Data command")]
         public string? DataCommand { get; set; }
-
-
-        public override string GetHelp() => "export data";
     }
 }
