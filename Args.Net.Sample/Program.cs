@@ -6,13 +6,13 @@ namespace Args.Net.Sample
     {
         static void Main(string[] args)
         {
-            var parser = new ArgumentParser();
             try
             {
-                args = "load data 555 --option1 -o2=6".Split(' ');
-                //args = "--help".Split(' ');
-                //args = "".Split(' ');
-                var arguments = parser.Parse(args);
+                //args = "load data 555 --option1 -o2=6".Split(' ');
+                args = "--help".Split(' ');
+                //args = "-h".Split(' ');
+                //args = "".Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var arguments = new ArgumentsParser().Parse(args);
 
                 Console.WriteLine(arguments.SyntaxVariantName);
 
@@ -20,11 +20,7 @@ namespace Args.Net.Sample
             }
             catch (ArgumentException ex)
             {
-                if (!string.IsNullOrEmpty(ex.Message))
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                Console.WriteLine(parser.GetHelp().ToString());
+                Console.WriteLine(new ArgumentsHelp().GetText(showSyntaxHelp: string.IsNullOrWhiteSpace(ex.Message), errorMessage: ex.Message));
             }
             catch (Exception ex)
             {

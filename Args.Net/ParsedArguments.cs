@@ -2,16 +2,16 @@
 {
     public class ParsedArguments
     {
-        public ParsedArguments(object variant)
+        public ParsedArguments(object syntaxVariant)
         {
-            _selectdVariant = variant;
+            _selectedSyntaxVariant = syntaxVariant;
         }
 
+        private object _selectedSyntaxVariant;
 
-        private object _selectdVariant;
 
-        public string SyntaxVariantName => _selectdVariant.GetType().Name;
+        public string SyntaxVariantName => ((Arguments)_selectedSyntaxVariant).SyntaxVariantName;
 
-        public T GetSyntaxVariant<T>() where T : class => (T)_selectdVariant;
+        public T GetSyntaxVariant<T>() where T : class => (T)_selectedSyntaxVariant;
     }
 }

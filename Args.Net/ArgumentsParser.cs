@@ -1,11 +1,8 @@
-﻿using System.Reflection;
-using System.Text;
-
-namespace Args.Net
+﻿namespace Args.Net
 {
     /// <summary>
     /// <para>
-    /// Command-line argument parser.
+    /// Command-line arguments parser.
     /// </para>
     /// <para>
     /// Terminology:
@@ -15,21 +12,13 @@ namespace Args.Net
     /// </list>
     /// </para>
     /// </summary>
-    public class ArgumentParser
+    public class ArgumentsParser : ArgumentsDefinition
     {
-        public ArgumentParser(Assembly? assembly = null)
-        {
-            _assembly = assembly == null ? Assembly.GetEntryAssembly()! : assembly;
-        }
-
-        private readonly Assembly _assembly;
-
-
         public ParsedArguments Parse(string[] args)
         {
-            if (args.Length == 0 || args[0] == "--help" || args[0] == "-h") throw new ArgumentException();
+            if (args.Length == 1 && (args[0] == "--help" || args[0] == "-h")) throw new ArgumentException(string.Empty);
 
-            var syntaxVariants = InstantiateSyntaxVariants(_assembly);
+            var syntaxVariants = InstantiateSyntaxVariants();
 
             ParseArguments(ExtractArguments(args), ref syntaxVariants);
             ParseOptions(ExtractOptions(args), ref syntaxVariants);
@@ -44,55 +33,37 @@ namespace Args.Net
             {
                 return selectedSyntaxVariants.Count switch
                 {
-                    0 => throw new ArgumentException("Provided arguments are incorrect, use --help option to display help"),
+                    0 => throw new ArgumentException("Provided arguments are incorrect, use --help or -h option to display help"),
                     _ => throw new ArgumentException("Ambigious syntax definition, more than one syntax variants match provided arguments")
                 };
             }
         }
 
 
-        public string GetHelp()
-        {
-            var helpText = new List<string>();
-            var executableName = Path.GetFileNameWithoutExtension(_assembly.Location);
-            helpText.Add($"{executableName}, (C) Tomasz Wiezik");
-            helpText.Add(string.Empty);
-            helpText.Add("SYNTAX:");
-            helpText.Add(string.Empty);
+        //public string GetHelp()
+        //{
+        //    var helpText = new List<string>();
+        //    var executableName = "";   // Path.GetFileNameWithoutExtension(_assembly.Location);
+        //    helpText.Add($"{executableName}, (C) Tomasz Wiezik");
+        //    helpText.Add(string.Empty);
+        //    helpText.Add("SYNTAX:");
+        //    helpText.Add(string.Empty);
 
-            var syntaxVariants = InstantiateSyntaxVariants(_assembly);
-            foreach (var syntaxVariant in syntaxVariants)
-            {
-                helpText.Add($"{executableName} {((Arguments)syntaxVariant!).GetHelp().Trim()}");
-                helpText.Add(string.Empty);
-            }
+        //    var syntaxVariants = InstantiateSyntaxVariants();
+        //    foreach (var syntaxVariant in syntaxVariants)
+        //    {
+        //        helpText.Add($"{executableName} {((Arguments)syntaxVariant!).GetHelp().Trim()}");
+        //        helpText.Add(string.Empty);
+        //    }
 
-            return string.Join(Environment.NewLine, helpText);
-        }
+        //    return string.Join(Environment.NewLine, helpText);
+        //}
 
 
         private List<string> ExtractArguments(string[] args) => args.ToList().FindAll(x => !x.StartsWith('-'));
 
 
         private List<string> ExtractOptions(string[] args) => args.ToList().FindAll(x => x.StartsWith('-'));
-
-
-        private List<object?> InstantiateSyntaxVariants(Assembly assembly) => assembly!.GetTypes()
-                .Where(x => x.IsClass && x.GetCustomAttribute<ArgumentsAttribute>() != null)
-                .Select(x => Activator.CreateInstance(x))
-                .ToList();
-
-
-        private IEnumerable<PropertyInfo> GetPropertiesWithAttribute<TAttr>(object instance) => instance
-            .GetType()
-            .GetProperties()
-            .Where(x => Attribute.IsDefined(x, typeof(TAttr)));
-
-
-        private Type GetPropertyType(PropertyInfo property) => Nullable.GetUnderlyingType(property.PropertyType) == null ?
-                                property.PropertyType :
-                                Nullable.GetUnderlyingType(property.PropertyType)!;
-
 
 
         private void ParseArguments(List<string> arguments, ref List<object?> syntaxVariants)
@@ -110,7 +81,7 @@ namespace Args.Net
 
                     foreach (var property in properties)
                     {
-                        var attribute = property.GetCustomAttribute<ArgumentAttribute>();
+                        var attribute = GetPropertyAttribute<ArgumentAttribute>(property);
                         if (attribute!.Position == position)
                         {
                             if (attribute.RequiredValue == argument || attribute.RequiredValue == null)
@@ -137,7 +108,7 @@ namespace Args.Net
                     var optionFound = false;
                     foreach (var property in GetPropertiesWithAttribute<OptionAttribute>(syntaxVariant!))
                     {
-                        var attribute = property.GetCustomAttribute<OptionAttribute>();
+                        var attribute = GetPropertyAttribute<OptionAttribute>(property);
                         if (attribute!.Name == parsedOption.Name || attribute!.ShortcutName == parsedOption.Name)
                         {
                             if (GetPropertyType(property).FullName != "System.Boolean" && !parsedOption.HasValue)
@@ -183,8 +154,7 @@ namespace Args.Net
                 {
                     foreach (var property in GetPropertiesWithAttribute<ArgumentAttribute>(syntaxVariant!))
                     {
-                        var attribute = property.GetCustomAttribute<ArgumentAttribute>();
-
+                        var attribute = GetPropertyAttribute<ArgumentAttribute>(property);
                         if (attribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
                     }
                 }
@@ -193,8 +163,7 @@ namespace Args.Net
                 {
                     foreach (var property in GetPropertiesWithAttribute<OptionAttribute>(syntaxVariant!))
                     {
-                        var attribute = property.GetCustomAttribute<OptionAttribute>();
-
+                        var attribute = GetPropertyAttribute<OptionAttribute>(property);
                         if (attribute!.Required && property.GetValue(syntaxVariant) == null) variantAccepted = false;
                     }
                 }

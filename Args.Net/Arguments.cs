@@ -2,7 +2,11 @@
 {
     public class Arguments
     {
-        //public List<string> UnknownOptions { get; } = new List<string>();
+        public string SyntaxVariantName => GetType().FullName != null ?
+            GetType().FullName! :
+            throw new ApplicationException("Arguments definition class cannot be a generic type");
+
+
         public bool Valid { get; private set; } = true;
 
 
