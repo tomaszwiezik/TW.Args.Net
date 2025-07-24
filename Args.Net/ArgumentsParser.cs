@@ -40,24 +40,7 @@
         }
 
 
-        //public string GetHelp()
-        //{
-        //    var helpText = new List<string>();
-        //    var executableName = "";   // Path.GetFileNameWithoutExtension(_assembly.Location);
-        //    helpText.Add($"{executableName}, (C) Tomasz Wiezik");
-        //    helpText.Add(string.Empty);
-        //    helpText.Add("SYNTAX:");
-        //    helpText.Add(string.Empty);
-
-        //    var syntaxVariants = InstantiateSyntaxVariants();
-        //    foreach (var syntaxVariant in syntaxVariants)
-        //    {
-        //        helpText.Add($"{executableName} {((Arguments)syntaxVariant!).GetHelp().Trim()}");
-        //        helpText.Add(string.Empty);
-        //    }
-
-        //    return string.Join(Environment.NewLine, helpText);
-        //}
+        public T Parse<T>(string[] args) where T : class => Parse(args).GetSyntaxVariant<T>();
 
 
         private List<string> ExtractArguments(string[] args) => args.ToList().FindAll(x => !x.StartsWith('-'));

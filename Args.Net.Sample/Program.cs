@@ -13,6 +13,7 @@ namespace Args.Net.Sample
                 //args = "-h".Split(' ');
                 //args = "".Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var arguments = new ArgumentsParser().Parse(args);
+                var arguments2 = new ArgumentsParser().Parse<LoadDataArguments>(args);
 
                 Console.WriteLine(arguments.SyntaxVariantName);
 

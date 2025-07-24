@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Text;
+﻿using System.Text;
 
 namespace Args.Net
 {
@@ -21,22 +20,15 @@ namespace Args.Net
                 text.AppendLine("SYNTAX:");
                 text.AppendLine(string.Empty);
 
-                var syntaxDoc = BuildSyntaxDoc();
+                var syntaxDoc = new SyntaxDocBuilder().Build();
                 var formatter = new TextFormatter();
 
-                var argumentNameColumnWidth = GetMaxArgumentLength(syntaxDoc);
-                var optionShortcutNameColumnWidth = GetMaxOptionShortcutNameLength(syntaxDoc);
-                var optionNameColumnWidth = GetMaxOptionNameLength(syntaxDoc);
-                if (argumentNameColumnWidth > optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth)
-                {
-                    optionNameColumnWidth = argumentNameColumnWidth - formatter.Spacing - optionNameColumnWidth;
-                }
-                if (argumentNameColumnWidth < optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth)
-                {
-                    argumentNameColumnWidth = optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth;
-                }
+                GetColumsWidth(syntaxDoc, formatter,
+                    out int argumentNameColumnWidth,
+                    out int optionNameColumnWidth,
+                    out int optionShortcutNameColumnWidth);
 
-                foreach (var doc in syntaxDoc)
+                foreach (var doc in syntaxDoc.Documentation)
                 {
                     text.AppendLine($"{GetExecutableName()} {doc.FullSyntax}");
                     text.AppendLine();
@@ -61,101 +53,22 @@ namespace Args.Net
         }
 
 
-        private List<SyntaxVariantDoc> BuildSyntaxDoc()
+        private void GetColumsWidth(SyntaxDoc syntaxDoc, TextFormatter formatter,
+            out int argumentNameColumnWidth,
+            out int optionNameColumnWidth,
+            out int optionShortcutNameColumnWidth)
         {
-            var syntaxDoc = new List<SyntaxVariantDoc>();
-
-            foreach (var variant in InstantiateSyntaxVariants())
+            argumentNameColumnWidth = GetMaxArgumentLength(syntaxDoc.Documentation);
+            optionNameColumnWidth = GetMaxOptionNameLength(syntaxDoc.Documentation);
+            optionShortcutNameColumnWidth = GetMaxOptionShortcutNameLength(syntaxDoc.Documentation);
+            if (argumentNameColumnWidth > optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth)
             {
-                if (variant != null)
-                {
-                    var doc = GetClassAttribute<DocAttribute>(variant);
-                    if (doc == null) throw new ApplicationException($"Syntax variant {((Arguments)variant).SyntaxVariantName} has no [Doc] attribute");
-
-                    var arguments = BuildArgumentsDoc(GetPropertiesWithAttribute<ArgumentAttribute>(variant));
-                    var options = BuildOptionsDoc(GetPropertiesWithAttribute<OptionAttribute>(variant));
-
-                    syntaxDoc.Add(new SyntaxVariantDoc(
-                        text: doc.Text,
-                        syntaxVariantName: ((Arguments)variant).SyntaxVariantName,
-                        fullSyntax: CreateFullSyntax(arguments, options),
-                        arguments: arguments,
-                        options: options));
-                }
+                optionNameColumnWidth = argumentNameColumnWidth - formatter.Spacing - optionNameColumnWidth;
             }
-            syntaxDoc.Sort((x, y) => x.FullSyntax.CompareTo(y.FullSyntax));
-
-            return syntaxDoc;
-        }
-
-
-        private List<ArgumentDoc> BuildArgumentsDoc(IEnumerable<PropertyInfo> properties)
-        {
-            var argumentsDoc = new List<ArgumentDoc>();
-
-            foreach (var property in properties)
+            if (argumentNameColumnWidth < optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth)
             {
-                var argument = GetPropertyAttribute<ArgumentAttribute>(property);
-                if (argument == null) throw new ApplicationException($"Property {property.Name} has no [Argument] attribute");
-
-                var doc = GetPropertyAttribute<DocAttribute>(property);
-                if (doc == null) throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
-                if (string.IsNullOrWhiteSpace(argument.Name) && string.IsNullOrWhiteSpace(argument.RequiredValue)) throw new ApplicationException($"Porperty {property.Name} has neither Name, nor RequiredValue specified in [Argument] attribute");
-
-                argumentsDoc.Add(new ArgumentDoc(
-                    name: (string.IsNullOrWhiteSpace(argument!.RequiredValue) ? argument.Name : argument.RequiredValue)!,
-                    position: argument.Position,
-                    required: argument.Required,
-                    text: doc.Text,
-                    fixedValue: !string.IsNullOrWhiteSpace(argument.RequiredValue)));
+                argumentNameColumnWidth = optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth;
             }
-            argumentsDoc.Sort((x, y) => x.Position - y.Position);
-
-            return argumentsDoc;
-        }
-
-
-        private List<OptionDoc> BuildOptionsDoc(IEnumerable<PropertyInfo> properties)
-        {
-            var optionsDoc = new List<OptionDoc>();
-
-            foreach (var property in properties)
-            {
-                var option = GetPropertyAttribute<OptionAttribute>(property);
-                if (option == null) throw new ApplicationException($"Property {property.Name} has no [Option] attribute");
-                if (string.IsNullOrWhiteSpace(option.Name)) throw new ApplicationException($"Porperty {property.Name} has no Name specified in [Option] attribute");
-
-                var doc = GetPropertyAttribute<DocAttribute>(property);
-                if (doc == null) throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
-
-                var propertyType = GetPropertyType(property);
-
-                optionsDoc.Add(new OptionDoc(
-                    name: propertyType.FullName == "System.Boolean" ? option.Name : $"{option.Name}=<{propertyType.Name.ToLower()}>",
-                    shortcutName: string.IsNullOrWhiteSpace(option.ShortcutName) ? string.Empty : option.ShortcutName,
-                    required: option.Required,
-                    text: doc.Text));
-            }
-            optionsDoc.Sort((x, y) => x.Name.CompareTo(y.Name));
-
-            return optionsDoc;
-        }
-
-
-        private string CreateFullSyntax(List<ArgumentDoc> arguments, List<OptionDoc> options)
-        {
-            var fullSyntax = string.Empty;
-
-            foreach (var argument in arguments)
-            {
-                fullSyntax += argument.Required ? $" {argument.Name}" : $" [{argument.Name}]";
-            }
-            foreach (var option in options)
-            {
-                fullSyntax += option.Required ? $" {option.Name}" : $" [{option.Name}]";
-            }
-
-            return fullSyntax.Trim();
         }
 
 
@@ -164,7 +77,7 @@ namespace Args.Net
             int maxLength = -1;
             foreach (var syntax in syntaxDoc)
             {
-                foreach(var argument in syntax.Arguments)
+                foreach (var argument in syntax.Arguments)
                 {
                     if (argument.Name.Length > maxLength) maxLength = argument.Name.Length;
                 }
