@@ -1,4 +1,6 @@
-﻿namespace TW.Args.Net
+﻿using System.Reflection;
+
+namespace TW.Args.Net
 {
     /// <summary>
     /// <para>
@@ -14,6 +16,11 @@
     /// </summary>
     public class ArgumentsParser : ArgumentsDefinition
     {
+        public ArgumentsParser(Assembly? assembly = null, string? executableName = null) 
+            : base(assembly, executableName)
+        { }
+
+
         public ParsedArguments Parse(string[] args)
         {
             if (args.Length == 1 && (args[0] == "--help" || args[0] == "-h")) throw new ArgumentException(string.Empty);
@@ -34,7 +41,7 @@
                 return selectedSyntaxVariants.Count switch
                 {
                     0 => throw new ArgumentException("Provided arguments are incorrect, use --help or -h option to display help"),
-                    _ => throw new ArgumentException("Ambigious syntax definition, more than one syntax variants match provided arguments")
+                    _ => throw new ArgumentException("Ambiguous syntax definition, more than one syntax variants match provided arguments")
                 };
             }
         }
@@ -60,8 +67,9 @@
                     var syntaxVariant = syntaxVariants[i];
                     var properties = GetPropertiesWithAttribute<ArgumentAttribute>(syntaxVariant!);
 
-                    if (properties.Count() > arguments.Count) continue;   // There are more arguments than the variant can accept
+                    if (arguments.Count > properties.Count()) continue;   // There are more arguments than the variant can accept
 
+                    var optionFound = false;
                     foreach (var property in properties)
                     {
                         var attribute = GetPropertyAttribute<ArgumentAttribute>(property);
@@ -69,9 +77,22 @@
                         {
                             if (attribute.RequiredValue == argument || attribute.RequiredValue == null)
                             {
-                                property.SetValue(syntaxVariant, argument);
+                                switch (GetPropertyType(property).FullName)
+                                {
+                                    case "System.Int16": property.SetValue(syntaxVariant, Convert.ToInt16(argument)); break;
+                                    case "System.Int32": property.SetValue(syntaxVariant, Convert.ToInt32(argument)); break;
+                                    case "System.Int64": property.SetValue(syntaxVariant, Convert.ToInt64(argument)); break;
+                                    case "System.String": property.SetValue(syntaxVariant, argument); break;
+                                    default: throw new ArgumentException($"Argument {argument} of type {GetPropertyType(property).FullName} is not supported");
+                                }
+
+                                optionFound = true;
                             }
                         }
+                    }
+                    if (!optionFound)
+                    {
+                        ((Arguments)syntaxVariant!).Invalidate();
                     }
                 }
             }
@@ -92,7 +113,7 @@
                     foreach (var property in GetPropertiesWithAttribute<OptionAttribute>(syntaxVariant!))
                     {
                         var attribute = GetPropertyAttribute<OptionAttribute>(property);
-                        if (attribute!.Name == parsedOption.Name || attribute!.ShortcutName == parsedOption.Name)
+                        if ($"--{attribute!.Name}" == parsedOption.Name || $"-{attribute!.ShortcutName}" == parsedOption.Name)
                         {
                             if (GetPropertyType(property).FullName != "System.Boolean" && !parsedOption.HasValue)
                             {
@@ -102,7 +123,9 @@
                             switch (GetPropertyType(property).FullName)
                             {
                                 case "System.Boolean": property.SetValue(syntaxVariant, true); break;
+                                case "System.Int16": property.SetValue(syntaxVariant, Convert.ToInt16(parsedOption.Value)); break;
                                 case "System.Int32": property.SetValue(syntaxVariant, Convert.ToInt32(parsedOption.Value)); break;
+                                case "System.Int64": property.SetValue(syntaxVariant, Convert.ToInt64(parsedOption.Value)); break;
                                 case "System.String": property.SetValue(syntaxVariant, parsedOption.Value); break;
                                 default: throw new ArgumentException($"Option {option} of type {GetPropertyType(property).FullName} is not supported");
                             }
@@ -125,6 +148,8 @@
 
             foreach (var syntaxVariant in syntaxVariants)
             {
+                if (syntaxVariant is not Arguments) throw new InvalidCastException($"Arguments definition class {syntaxVariant.GetType().FullName} must inherit from Arguments class");
+
                 var variantAccepted = true;
 
                 if (variantAccepted)

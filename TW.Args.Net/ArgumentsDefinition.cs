@@ -26,9 +26,13 @@ namespace TW.Args.Net
         protected string GetExecutableName() => _executableName;
 
 
-        protected Type GetPropertyType(PropertyInfo property) => Nullable.GetUnderlyingType(property.PropertyType) != null ?
-            Nullable.GetUnderlyingType(property.PropertyType)! :
+        protected Type GetPropertyType(PropertyInfo property)
+        {
+            if (Nullable.GetUnderlyingType(property.PropertyType) != null) return Nullable.GetUnderlyingType(property.PropertyType)!;
+            if (!property.PropertyType.IsValueType) return property.PropertyType;
+
             throw new ApplicationException($"{property.Name}: properties decorated with [Argument] or [Option] attributes must be nullable");
+        }
 
 
         protected IEnumerable<PropertyInfo> GetPropertiesWithAttribute<TAttr>(object instance) => instance
