@@ -1,4 +1,4 @@
-﻿namespace Args.Net
+﻿namespace TW.Args.Net
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
     public class DocAttribute : Attribute

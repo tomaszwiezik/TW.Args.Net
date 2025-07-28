@@ -1,4 +1,4 @@
-﻿namespace Args.Net.Sample.InputArguments
+﻿namespace TW.Args.Net.Sample.InputArguments
 {
     [Arguments]
     [Doc("LoadDataArguments descriptive documentation for help purposes. It can be long and span across multiple lines in a console application.")]

@@ -1,6 +1,6 @@
-﻿using Args.Net.Sample.InputArguments;
+﻿using TW.Args.Net.Sample.InputArguments;
 
-namespace Args.Net.Sample
+namespace TW.Args.Net.Sample
 {
     internal class Program
     {

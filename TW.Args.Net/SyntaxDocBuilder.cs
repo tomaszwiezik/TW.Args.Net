@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Args.Net
+namespace TW.Args.Net
 {
     internal class SyntaxDocBuilder : ArgumentsDefinition
     {

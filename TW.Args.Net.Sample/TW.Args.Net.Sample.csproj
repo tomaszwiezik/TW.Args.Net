@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Args.Net\Args.Net.csproj" />
+    <ProjectReference Include="..\TW.Args.Net\TW.Args.Net.csproj" />
   </ItemGroup>
 
 </Project>

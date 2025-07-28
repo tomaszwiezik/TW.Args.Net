@@ -1,4 +1,4 @@
-﻿namespace Args.Net
+﻿namespace TW.Args.Net
 {
     internal class TextFormatter
     {
