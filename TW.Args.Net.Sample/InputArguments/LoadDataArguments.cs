@@ -16,11 +16,11 @@
         [Doc("File name containing data to load.")]
         public string? FileName { get; set; }
 
-        [Option(Name = "--option1")]
+        [Option(Name = "option1")]
         [Doc("Option 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")]
         public bool? Option1 { get; set; } = false;
 
-        [Option(Name = "--option2", ShortcutName = "-o2", Required = true)]
+        [Option(Name = "option2", ShortcutName = "o2", Required = true)]
         [Doc("Option 2. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")]
         public int? Option2 { get; set; }
     }

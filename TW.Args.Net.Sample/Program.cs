@@ -6,26 +6,66 @@ namespace TW.Args.Net.Sample
     {
         static void Main(string[] args)
         {
+            args = ["--help"];
+            ArgumentsParser.Parse(args, (variants) =>
+            {
+                Console.WriteLine(variants.SyntaxVariantName);
+                var Arguments = variants.GetSyntaxVariant<LoadDataArguments>();
+            });
+
+
             try
             {
-                //args = "load data 555 --option1 -o2=6".Split(' ');
-                args = "--help".Split(' ');
-                //args = "-h".Split(' ');
-                //args = "".Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var arguments = new ArgumentsParser().Parse(args);
-                var arguments2 = new ArgumentsParser().Parse<LoadDataArguments>(args);
+                args = ["--help"];
+                var variants = new ArgumentsParser().Parse(args);
 
-                Console.WriteLine(arguments.SyntaxVariantName);
-
-                var variantArguments = arguments.GetSyntaxVariant<LoadDataArguments>();
+                Console.WriteLine(variants.SyntaxVariantName);
+                var arguments = variants.GetSyntaxVariant<LoadDataArguments>();
             }
-            catch (ArgumentException ex)
+            catch (HelpRequestedException)
             {
-                Console.WriteLine(new ArgumentsHelp().GetText(showSyntaxHelp: string.IsNullOrWhiteSpace(ex.Message), errorMessage: ex.Message));
+                Console.WriteLine(new ArgumentsHelp().GetText());
+            }
+            catch (SyntaxException ex)
+            {
+                Console.WriteLine($"Syntax error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+#if DEBUG
+                Console.WriteLine($"Error: {ex.ToString()}");
+#else
+                Console.WriteLine($"Error: {ex.Message}");
+#endif
+            }
+
+
+            args = ["load", "data", "555", "--option1", "-o2=6"];
+            ArgumentsParser.Parse<LoadDataArguments>(args, (arguments) =>
+            {
+            });
+
+
+            try
+            {
+                args = ["load", "data", "555", "--option1", "-o2=6"];
+                var arguments1 = new ArgumentsParser().Parse<LoadDataArguments>(args);
+            }
+            catch (HelpRequestedException)
+            {
+                Console.WriteLine(new ArgumentsHelp().GetText());
+            }
+            catch (SyntaxException ex)
+            {
+                Console.WriteLine($"Syntax error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Console.WriteLine($"Error: {ex.ToString()}");
+#else
+                Console.WriteLine($"Error: {ex.Message}");
+#endif
             }
         }
     }

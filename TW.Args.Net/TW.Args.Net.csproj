@@ -4,10 +4,33 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>Tomasz Więzik</Authors>
+    <Description>Flexible command-line arguments parser. Supports both positional arguments and options (switches). Automatically generates a nicely formatted help text.</Description>
+    <Copyright>Copyright (C) Tomasz Więzik</Copyright>
+    <PackageReleaseNotes>The first release.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>command-line;argument;parameter;option;switch;console;args;parser</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://w3space.eu/photo</PackageProjectUrl>
+    <Title>Test title</Title>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="TW.Args.Net.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="doc\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

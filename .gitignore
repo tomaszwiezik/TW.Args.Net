@@ -8,3 +8,5 @@
 
 /TW.Args.Net.Tests/bin
 /TW.Args.Net.Tests/obj
+
+*.user

@@ -12,23 +12,21 @@ namespace TW.Args.Net.Tests
         [Fact]
         public void TestHelp()
         {
-            var exception = Assert.Throws<ArgumentException>(() => GetParser()
+            var exception = Assert.Throws<HelpRequestedException>(() => GetParser()
                 .Parse(ToArgs("--help")));
-            Assert.True(string.IsNullOrWhiteSpace(exception.Message));
         }
 
         [Fact]
         public void TestHelpShortcut()
         {
-            var exception = Assert.Throws<ArgumentException>(() => GetParser()
+            var exception = Assert.Throws<HelpRequestedException>(() => GetParser()
                 .Parse(ToArgs("-h")));
-            Assert.True(string.IsNullOrWhiteSpace(exception.Message));
         }
 
         [Fact]
         public void TestNoArguments()
         {
-            var exception = Assert.Throws<ArgumentException>(() => GetParser()
+            var exception = Assert.Throws<SyntaxException>(() => GetParser()
                 .Parse(ToArgs("")));
             Assert.True(!string.IsNullOrWhiteSpace(exception.Message));
         }
@@ -56,21 +54,21 @@ namespace TW.Args.Net.Tests
         [Fact]
         public void TestTooManyPositionalArguments()
         {
-            Assert.Throws<ArgumentException>(() => GetParser()
+            Assert.Throws<SyntaxException>(() => GetParser()
                 .Parse<SamplePositionalArguments>(ToArgs("command file output some others")));
         }
 
         [Fact]
         public void TestInsufficientPositionalArguments()
         {
-            Assert.Throws<ArgumentException>(() => GetParser()
+            Assert.Throws<SyntaxException>(() => GetParser()
                 .Parse<SamplePositionalArguments>(ToArgs("command")));
         }
 
         [Fact]
         public void TestUnsupportedCommandInPositionalArguments()
         {
-            Assert.Throws<ArgumentException>(() => GetParser()
+            Assert.Throws<SyntaxException>(() => GetParser()
                 .Parse<SamplePositionalArguments>(ToArgs("unsupportedCommand file")));
         }
 
@@ -133,7 +131,7 @@ namespace TW.Args.Net.Tests
                 .Parse<SampleMixedArguments>(ToArgs("command file output --boolRequired --stringRequired=required-string --intRequired=999 --boolOptional --stringOptional=optional-string --intOptional=200"));
             Assert.Equal("command", arguments.Command);
             Assert.Equal("file", arguments.File);
-            Assert.Null(arguments.OutputFile);
+            Assert.Equal("output", arguments.OutputFile);
 
             Assert.Equal(true, arguments.BoolRequired);
             Assert.Equal("required-string", arguments.StringRequired);
@@ -142,5 +140,40 @@ namespace TW.Args.Net.Tests
             Assert.Equal("optional-string", arguments.StringOptional);
             Assert.Equal(200, arguments.IntOptional);
         }
+
+        [Fact]
+        public void TestMixedArgumentsWithOptionsBeforeArguments()
+        {
+            var arguments = GetParser()
+                .Parse<SampleMixedArguments>(ToArgs("--boolRequired --stringRequired=required-string --intRequired=999 --boolOptional --stringOptional=optional-string --intOptional=200 command file output"));
+            Assert.Equal("command", arguments.Command);
+            Assert.Equal("file", arguments.File);
+            Assert.Equal("output", arguments.OutputFile);
+
+            Assert.Equal(true, arguments.BoolRequired);
+            Assert.Equal("required-string", arguments.StringRequired);
+            Assert.Equal(999, arguments.IntRequired);
+            Assert.Equal(true, arguments.BoolOptional);
+            Assert.Equal("optional-string", arguments.StringOptional);
+            Assert.Equal(200, arguments.IntOptional);
+        }
+
+        [Fact]
+        public void TestRequiredOnlyMixedArguments()
+        {
+            var arguments = GetParser()
+                .Parse<SampleMixedArguments>(ToArgs("command file --boolRequired --stringRequired=required-string --intRequired=999"));
+            Assert.Equal("command", arguments.Command);
+            Assert.Equal("file", arguments.File);
+            Assert.Null(arguments.OutputFile);
+
+            Assert.Equal(true, arguments.BoolRequired);
+            Assert.Equal("required-string", arguments.StringRequired);
+            Assert.Equal(999, arguments.IntRequired);
+            Assert.Equal(false, arguments.BoolOptional);
+            Assert.Equal(string.Empty, arguments.StringOptional);
+            Assert.Equal(100, arguments.IntOptional);
+        }
+
     }
 }

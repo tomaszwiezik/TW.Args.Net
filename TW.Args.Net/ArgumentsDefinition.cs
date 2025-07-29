@@ -17,10 +17,10 @@ namespace TW.Args.Net
         private readonly string _executableName;
 
 
-        protected List<object?> InstantiateSyntaxVariants() => _assembly.GetTypes()
-                .Where(x => x.IsClass && x.GetCustomAttribute<ArgumentsAttribute>() != null)
-                .Select(x => Activator.CreateInstance(x))
-                .ToList();
+        protected List<object> InstantiateSyntaxVariants() => _assembly.GetTypes()
+            .Where(x => x.IsClass && x.GetCustomAttribute<ArgumentsAttribute>() != null)
+            .Select(x => Activator.CreateInstance(x) ?? throw new ApplicationException($"Type {x.FullName} cannot be instantiated"))
+            .ToList();
 
 
         protected string GetExecutableName() => _executableName;

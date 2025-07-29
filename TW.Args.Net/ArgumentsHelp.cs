@@ -4,48 +4,41 @@ namespace TW.Args.Net
 {
     public class ArgumentsHelp : ArgumentsDefinition
     {
-        public string GetText(bool showSyntaxHelp = true, string? errorMessage = null)
+        public string GetText()
         {
             StringBuilder text = new StringBuilder();
 
-            if (!string.IsNullOrWhiteSpace(errorMessage))
+            text.AppendLine($"{GetExecutableName()}, (C) Tomasz Wiezik");
+            text.AppendLine();
+
+            text.AppendLine("SYNTAX:");
+            text.AppendLine(string.Empty);
+
+            var syntaxDoc = new SyntaxDocBuilder().Build();
+            var formatter = new TextFormatter();
+
+            GetColumsWidth(syntaxDoc, formatter,
+                out int argumentNameColumnWidth,
+                out int optionNameColumnWidth,
+                out int optionShortcutNameColumnWidth);
+
+            foreach (var doc in syntaxDoc.Documentation)
             {
-                text.AppendLine($"Error: {errorMessage}");
-            }
-            if (showSyntaxHelp)
-            {
-                text.AppendLine($"{GetExecutableName()}, (C) Tomasz Wiezik");
+                text.AppendLine($"{GetExecutableName()} {doc.FullSyntax}");
+                text.AppendLine();
+                text.AppendLine(formatter.ToColumns([0], [doc.Text]));
                 text.AppendLine();
 
-                text.AppendLine("SYNTAX:");
-                text.AppendLine(string.Empty);
-
-                var syntaxDoc = new SyntaxDocBuilder().Build();
-                var formatter = new TextFormatter();
-
-                GetColumsWidth(syntaxDoc, formatter,
-                    out int argumentNameColumnWidth,
-                    out int optionNameColumnWidth,
-                    out int optionShortcutNameColumnWidth);
-
-                foreach (var doc in syntaxDoc.Documentation)
+                foreach (var argument in doc.Arguments.FindAll(x => !x.FixedValue))
                 {
-                    text.AppendLine($"{GetExecutableName()} {doc.FullSyntax}");
+                    text.AppendLine(formatter.ToColumns([argumentNameColumnWidth, 0], [argument.Name, argument.Text]));
                     text.AppendLine();
-                    text.AppendLine(formatter.ToColumns([0], [doc.Text]));
+                }
+
+                foreach (var option in doc.Options)
+                {
+                    text.AppendLine(formatter.ToColumns([optionShortcutNameColumnWidth, optionNameColumnWidth, 0], [option.ShortcutName, option.Name, option.Text]));
                     text.AppendLine();
-
-                    foreach (var argument in doc.Arguments.FindAll(x => !x.FixedValue))
-                    {
-                        text.AppendLine(formatter.ToColumns([argumentNameColumnWidth, 0], [argument.Name, argument.Text]));
-                        text.AppendLine();
-                    }
-
-                    foreach (var option in doc.Options)
-                    {
-                        text.AppendLine(formatter.ToColumns([optionShortcutNameColumnWidth, optionNameColumnWidth, 0], [option.ShortcutName, option.Name, option.Text]));
-                        text.AppendLine();
-                    }
                 }
             }
 
