@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TW.Args.Net.Sample": {
+      "commandName": "Project",
+      "commandLineArgs": "-h"
+    }
+  }
+}

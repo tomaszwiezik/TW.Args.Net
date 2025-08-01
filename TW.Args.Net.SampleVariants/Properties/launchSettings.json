@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TW.Args.Net.SampleVariants": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
+    }
+  }
+}

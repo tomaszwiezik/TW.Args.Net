@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TW.Args.Net.Sample", "TW.Ar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TW.Args.Net.Tests", "TW.Args.Net.Tests\TW.Args.Net.Tests.csproj", "{CBEC8961-E868-4426-81DA-02D908079AB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TW.Args.Net.SampleVariants", "TW.Args.Net.SampleVariants\TW.Args.Net.SampleVariants.csproj", "{9A0AF26C-E9BE-482B-9F55-5AA02B3DA990}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{CBEC8961-E868-4426-81DA-02D908079AB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBEC8961-E868-4426-81DA-02D908079AB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBEC8961-E868-4426-81DA-02D908079AB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A0AF26C-E9BE-482B-9F55-5AA02B3DA990}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A0AF26C-E9BE-482B-9F55-5AA02B3DA990}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A0AF26C-E9BE-482B-9F55-5AA02B3DA990}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A0AF26C-E9BE-482B-9F55-5AA02B3DA990}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

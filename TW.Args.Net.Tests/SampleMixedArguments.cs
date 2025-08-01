@@ -2,7 +2,7 @@
 {
     [Arguments]
     [Doc("Sample mixed arguments")]
-    internal class SampleMixedArguments : Arguments
+    internal class SampleMixedArguments
     {
         [Argument(Required = true, RequiredValue = "command", Position = 0)]
         [Doc("Command")]

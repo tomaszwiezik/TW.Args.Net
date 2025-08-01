@@ -2,7 +2,7 @@
 {
     [Arguments]
     [Doc("Sample option arguments")]
-    internal class SampleOptionArguments : Arguments
+    internal class SampleOptionArguments
     {
         [Option(Name = "boolRequired", ShortcutName = "br", Required = true)]
         [Doc("boolRequired")]

@@ -2,7 +2,7 @@
 {
     [Arguments]
     [Doc("Sample positional arguments")]
-    internal class SamplePositionalArguments : Arguments
+    internal class SamplePositionalArguments
     {
         [Argument(Required = true, RequiredValue = "command", Position = 0)]
         [Doc("Command")]

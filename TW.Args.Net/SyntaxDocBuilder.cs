@@ -4,6 +4,14 @@ namespace TW.Args.Net
 {
     internal class SyntaxDocBuilder : ArgumentsDefinition
     {
+        public SyntaxDocBuilder(ParserOptions options)
+        {
+            _options = options;
+        }
+
+        private readonly ParserOptions _options;
+
+
         public SyntaxDoc Build()
         {
             return new SyntaxDoc(BuildSyntaxDoc());
@@ -18,15 +26,14 @@ namespace TW.Args.Net
             {
                 if (variant != null)
                 {
-                    var doc = GetClassAttribute<DocAttribute>(variant);
-                    if (doc == null) throw new ApplicationException($"Syntax variant {((Arguments)variant).SyntaxVariantName} has no [Doc] attribute");
+                    var doc = GetClassAttribute<DocAttribute>(variant) ?? throw new ApplicationException($"Syntax variant {variant.GetType().FullName} has no [Doc] attribute");
 
                     var arguments = BuildArgumentsDoc(GetPropertiesWithAttribute<ArgumentAttribute>(variant));
                     var options = BuildOptionsDoc(GetPropertiesWithAttribute<OptionAttribute>(variant));
 
                     syntaxDoc.Add(new SyntaxVariantDoc(
                         text: doc.Text,
-                        syntaxVariantName: ((Arguments)variant).SyntaxVariantName,
+                        syntaxVariantName: variant.GetType().FullName ?? throw new ApplicationException($"Argument definition class cannot be of a generic type"),
                         fullSyntax: CreateFullSyntax(arguments, options),
                         arguments: arguments,
                         options: options));
@@ -44,19 +51,17 @@ namespace TW.Args.Net
 
             foreach (var property in properties)
             {
-                var argument = GetPropertyAttribute<ArgumentAttribute>(property);
-                if (argument == null) throw new ApplicationException($"Property {property.Name} has no [Argument] attribute");
+                var argument = GetPropertyAttribute<ArgumentAttribute>(property) ?? throw new ApplicationException($"Property {property.Name} has no [Argument] attribute");
 
-                var doc = GetPropertyAttribute<DocAttribute>(property);
-                if (doc == null) throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
+                var doc = GetPropertyAttribute<DocAttribute>(property) ?? throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
                 if (string.IsNullOrWhiteSpace(argument.Name) && string.IsNullOrWhiteSpace(argument.RequiredValue)) throw new ApplicationException($"Porperty {property.Name} has neither Name, nor RequiredValue specified in [Argument] attribute");
 
                 argumentsDoc.Add(new ArgumentDoc(
-                    name: (string.IsNullOrWhiteSpace(argument!.RequiredValue) ? argument.Name : argument.RequiredValue)!,
-                    position: argument.Position,
-                    required: argument.Required,
-                    text: doc.Text,
-                    fixedValue: !string.IsNullOrWhiteSpace(argument.RequiredValue)));
+                    Name: (string.IsNullOrWhiteSpace(argument!.RequiredValue) ? argument.Name : argument.RequiredValue)!,
+                    Position: argument.Position,
+                    Required: argument.Required,
+                    Text: doc.Text,
+                    FixedValue: !string.IsNullOrWhiteSpace(argument.RequiredValue)));
             }
             argumentsDoc.Sort((x, y) => x.Position - y.Position);
 
@@ -70,20 +75,18 @@ namespace TW.Args.Net
 
             foreach (var property in properties)
             {
-                var option = GetPropertyAttribute<OptionAttribute>(property);
-                if (option == null) throw new ApplicationException($"Property {property.Name} has no [Option] attribute");
+                var option = GetPropertyAttribute<OptionAttribute>(property) ?? throw new ApplicationException($"Property {property.Name} has no [Option] attribute");
                 if (string.IsNullOrWhiteSpace(option.Name)) throw new ApplicationException($"Porperty {property.Name} has no Name specified in [Option] attribute");
 
-                var doc = GetPropertyAttribute<DocAttribute>(property);
-                if (doc == null) throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
+                var doc = GetPropertyAttribute<DocAttribute>(property) ?? throw new ApplicationException($"Property {property.Name} has no [Doc] attribute");
 
                 var propertyType = GetPropertyType(property);
 
                 optionsDoc.Add(new OptionDoc(
-                    name: propertyType.FullName == "System.Boolean" ? option.Name : $"{option.Name}=<{propertyType.Name.ToLower()}>",
-                    shortcutName: string.IsNullOrWhiteSpace(option.ShortcutName) ? string.Empty : option.ShortcutName,
-                    required: option.Required,
-                    text: doc.Text));
+                    Name: propertyType.FullName == "System.Boolean" ? $"{_options.OptionPrefix}{option.Name}" : $"{_options.OptionPrefix}{option.Name}=<{propertyType.Name.ToLower()}>",
+                    ShortcutName: string.IsNullOrWhiteSpace(option.ShortcutName) ? string.Empty : $"{_options.OptionShortcutPrefix}{option.ShortcutName}",
+                    Required: option.Required,
+                    Text: doc.Text));
             }
             optionsDoc.Sort((x, y) => x.Name.CompareTo(y.Name));
 

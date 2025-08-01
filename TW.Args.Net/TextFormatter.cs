@@ -10,8 +10,8 @@
         }
 
         public int MaxWidth { get; }
-        public int Intendation;
-        public int Spacing;
+        public int Intendation { get; }
+        public int Spacing { get; }
 
 
         public string ToColumns(List<int> width, List<string> content)

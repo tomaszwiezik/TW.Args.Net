@@ -1,12 +1,27 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 
 namespace TW.Args.Net
 {
     public class ArgumentsHelp : ArgumentsDefinition
     {
+        public ArgumentsHelp(Assembly? assembly = null, ParserOptions? options = null)
+            : base(assembly, options?.ApplicationName)
+        {
+            Options.Merge(options);
+        }
+
+
+        public ParserOptions Options { get; private set; } = new ParserOptions()
+        {
+            OptionPrefix = "--",
+            OptionShortcutPrefix = "-"
+        };
+
+
         public string GetText()
         {
-            StringBuilder text = new StringBuilder();
+            var text = new StringBuilder();
 
             text.AppendLine($"{GetExecutableName()}, (C) Tomasz Wiezik");
             text.AppendLine();
@@ -14,7 +29,7 @@ namespace TW.Args.Net
             text.AppendLine("SYNTAX:");
             text.AppendLine(string.Empty);
 
-            var syntaxDoc = new SyntaxDocBuilder().Build();
+            var syntaxDoc = new SyntaxDocBuilder(Options).Build();
             var formatter = new TextFormatter();
 
             GetColumsWidth(syntaxDoc, formatter,
