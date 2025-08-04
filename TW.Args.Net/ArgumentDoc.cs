@@ -1,6 +1,6 @@
 ﻿namespace TW.Args.Net
 {
-    public record ArgumentDoc(
+    internal record ArgumentDoc(
         string Name, 
         int Position, 
         bool Required, 

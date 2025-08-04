@@ -8,11 +8,12 @@
     <Description>Flexible command-line arguments parser. Supports both positional arguments and options (switches). Automatically generates a nicely formatted help text.</Description>
     <Copyright>Copyright (C) Tomasz Więzik</Copyright>
     <PackageReleaseNotes>The first release.</PackageReleaseNotes>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile></PackageReadmeFile>
     <PackageTags>command-line;argument;parameter;option;switch;console;args;parser</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://w3space.eu/photo</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/tomaszwiezik/TW.Args.Net</PackageProjectUrl>
     <Title>Test title</Title>
+    <Version>9.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

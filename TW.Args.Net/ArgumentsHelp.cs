@@ -71,7 +71,7 @@ namespace TW.Args.Net
             optionShortcutNameColumnWidth = GetMaxOptionShortcutNameLength(syntaxDoc.Documentation);
             if (argumentNameColumnWidth > optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth)
             {
-                optionNameColumnWidth = argumentNameColumnWidth - formatter.Spacing - optionNameColumnWidth;
+                optionNameColumnWidth = argumentNameColumnWidth - formatter.Spacing - optionShortcutNameColumnWidth;
             }
             if (argumentNameColumnWidth < optionShortcutNameColumnWidth + formatter.Spacing + optionNameColumnWidth)
             {

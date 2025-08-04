@@ -1,6 +1,6 @@
 ﻿namespace TW.Args.Net
 {
-    public record OptionDoc(
+    internal record OptionDoc(
         string Name, 
         string ShortcutName, 
         bool Required, 

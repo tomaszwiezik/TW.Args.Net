@@ -1,13 +1,8 @@
 ﻿namespace TW.Args.Net
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
-    public class DocAttribute : Attribute
+    public class DocAttribute(string text) : Attribute
     {
-        public DocAttribute(string text)
-        {
-            Text = text;
-        }
-
-        public string Text { get; }
+        public string Text { get; } = text;
     }
 }

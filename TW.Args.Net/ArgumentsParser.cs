@@ -71,7 +71,7 @@ namespace TW.Args.Net
                 }
                 else
                 {
-                    Console.WriteLine(new ArgumentsHelp(options: Options).GetText());
+                    Console.WriteLine(new ArgumentsHelp(assembly: GetArgumentDefinitionAssembly(), options: Options).GetText());
                     return 0;
                 }
             }

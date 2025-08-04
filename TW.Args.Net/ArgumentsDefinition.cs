@@ -6,10 +6,10 @@ namespace TW.Args.Net
     {
         public ArgumentsDefinition(Assembly? assembly = null, string? executableName = null)
         {
-            _assembly = assembly == null ? Assembly.GetEntryAssembly()! : assembly;
+            _assembly = assembly ?? Assembly.GetEntryAssembly()!;
             if (_assembly == null) throw new ApplicationException("It is not possible to determine the assembly where arguments are defined");
 
-            _executableName = executableName == null ? Path.GetFileNameWithoutExtension(_assembly.Location) : executableName;
+            _executableName = executableName ?? Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly()!.Location);
             if (_executableName == null) throw new ApplicationException("It is not possible to determine the executable name");
         }
 
@@ -22,6 +22,8 @@ namespace TW.Args.Net
             .Select(x => Activator.CreateInstance(x) ?? throw new ApplicationException($"Type {x.FullName} cannot be instantiated"))
             .ToList();
 
+
+        protected Assembly GetArgumentDefinitionAssembly() => _assembly;
 
         protected string GetExecutableName() => _executableName;
 
