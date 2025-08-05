@@ -1,15 +1,15 @@
 /.vs
 
-/TW.Args.Net/bin
-/TW.Args.Net/obj
+/Tsw.Args.Net/bin
+/Tsw.Args.Net/obj
 
-/TW.Args.Net.Sample/bin
-/TW.Args.Net.Sample/obj
+/Tsw.Args.Net.Sample/bin
+/Tsw.Args.Net.Sample/obj
 
-/TW.Args.Net.SampleVariants/bin
-/TW.Args.Net.SampleVariants/obj
+/Tsw.Args.Net.SampleVariants/bin
+/Tsw.Args.Net.SampleVariants/obj
 
-/TW.Args.Net.Tests/bin
-/TW.Args.Net.Tests/obj
+/Tsw.Args.Net.Tests/bin
+/Tsw.Args.Net.Tests/obj
 
 *.user
