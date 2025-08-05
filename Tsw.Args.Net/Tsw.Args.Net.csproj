@@ -11,9 +11,9 @@
     <PackageReadmeFile></PackageReadmeFile>
     <PackageTags>command-line;argument;parameter;option;switch;console;args;parser</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/tomaszwiezik/TW.Args.Net</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/tomaszwiezik/Tsw.Args.Net</PackageProjectUrl>
     <Title>Tsw.Args.Net</Title>
-    <Version>1.0.0</Version>
+    <Version>9.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
