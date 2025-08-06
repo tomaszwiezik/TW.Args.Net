@@ -67,11 +67,11 @@ namespace TW.Args.Net.Sample
     [Doc("Copy file to another location.")]
     internal class Arguments
     {
-        [Argument(Name = "<source_file>", Required = true, Position = 1)]
+        [Argument(Name = "<source_file>", Required = true, Position = 0)]
         [Doc("Source file name.")]
         public string? SourceFile { get; set; }
 
-        [Argument(Name = "<destination_file>", Required = true, Position = 2)]
+        [Argument(Name = "<destination_file>", Required = true, Position = 1)]
         [Doc("Destination file name.")]
         public string? DestinationFile { get; set; }
 
