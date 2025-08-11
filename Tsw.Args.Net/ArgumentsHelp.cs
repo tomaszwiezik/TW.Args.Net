@@ -23,7 +23,6 @@ namespace Tsw.Args.Net
         {
             var text = new StringBuilder();
 
-            text.AppendLine($"{GetExecutableName()}, (C) Tomasz Wiezik");
             text.AppendLine();
 
             text.AppendLine("SYNTAX:");

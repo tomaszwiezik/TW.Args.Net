@@ -331,8 +331,6 @@ Console.WriteLine(new ArgumentsHelp().GetText());
 The help text generated for the simple syntax sample:
 
 ```
-TW.Args.Net.Sample, (C) Tomasz Wiezik
-
 SYNTAX:
 
 TW.Args.Net.Sample <source_file> <destination_file> [--quiet] [--retry=<int32>]
